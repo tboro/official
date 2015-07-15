@@ -48,6 +48,15 @@ var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
         }
     }, 10 * 1000);
 
+    function slug(str) {
+        var $slug = '';
+        var trimmed = $.trim(str);
+        $slug = trimmed.replace(/[^a-z0-9-]/gi, '-').
+        replace(/-+/g, '-').
+        replace(/^-|-$/g, '');
+        return $slug.toLowerCase();
+    }
+
     function setOutput(val) {
         val = val.replace(/<equation>((.*?\n)*?.*?)<\/equation>/ig, function (a, b) {
             return '<img src="http://latex.codecogs.com/png.latex?' + encodeURIComponent(b) + '" />';
@@ -56,7 +65,23 @@ var URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
         var out = document.getElementById('out');
         var old = out.cloneNode(true);
         out.innerHTML = md.render(val);
-
+        
+        //set ids for headers as editors may need to make anchors to them
+        $("#out").find("h1,h2,h3,h4").each(function(){
+            var headerSufix = '';
+            var headerSlug = slug($(this).text());
+            
+            //to make the new id unique
+            while($('#'+headerSlug+headerSufix).length > 0) {
+                if(headerSufix == '') {
+                    headerSufix = 1;
+                }
+                headerSufix++;
+            }           
+            
+            $(this).attr('id',headerSlug+headerSufix);
+        });
+        
         var allold = old.getElementsByTagName("*");
         if (allold === undefined)
             return;
